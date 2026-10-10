@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WonderKid Arcade ✨ Play Games & Reveal Your Secret Superpowers!</title>
+  <meta name="description" content="A game-based discovery realm for kids. Play fun mini-games—every choice, reaction, and creative move you make reveals your hidden talents and unique superpower profile!">
+  
+  <!-- Modern playful typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body class="theme-rainbow">
+  <!-- Background Ambient Glow & Floating Wonder Particles -->
+  <div class="ambient-canvas-wrapper" aria-hidden="true">
+    <div class="glow-orb orb-1"></div>
+    <div class="glow-orb orb-2"></div>
+    <div class="glow-orb orb-3"></div>
+    <div class="stars-particle-container" id="stars-container"></div>
+  </div>
+
+  <!-- Confetti Canvas Overlay -->
+  <canvas id="confetti-canvas" class="confetti-canvas" aria-hidden="true"></canvas>
+
+  <!-- Live Spark Notification Toast (Floats up when kid makes a gameplay choice) -->
+  <div id="live-spark-toast" class="spark-toast hidden" aria-live="polite">
+    <span class="spark-toast-icon">✨</span>
+    <span class="spark-toast-text" id="spark-toast-text">Kindness Spark Discovered!</span>
+  </div>
+
+  <!-- Top App Navigation / Controls -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand" id="brand-logo" role="button" tabindex="0" title="Return to Arcade World">
+        <span class="brand-icon">🎮</span>
+        <div class="brand-text">
+          <span class="brand-title">WonderKid<span class="accent-dot">.</span>Arcade</span>
+          <span class="brand-tagline">Play Games • Discover Your Superpowers</span>
+        </div>
+      </div>
+
+      <!-- Live Superpower Orb HUD (Updates live as kid plays!) -->
+      <div class="live-superpower-hud" id="live-hud" title="Your superpower crystal absorbs energy as you play!">
+        <div class="crystal-orb-container">
+          <div class="crystal-orb" id="crystal-orb">🔮</div>
+          <div class="orb-pulse-ring"></div>
+        </div>
+        <div class="hud-stats">
+          <span class="hud-spark-count"><strong id="total-choices-count">0</strong> Choices Made</span>
+          <span class="hud-lead-spark" id="hud-leading-talent">Spark: Awakening...</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Background Melody toggle -->
+        <button id="toggle-music-btn" class="pill-btn music-btn" title="Toggle background melody" aria-label="Toggle background music">
+          <span class="btn-icon">🎵</span>
+          <span class="btn-label">Music: <strong id="music-state-text">Off</strong></span>
+        </button>
+
+        <!-- Sound SFX toggle -->
+        <button id="toggle-sound-btn" class="pill-btn sound-btn" title="Toggle sound effects" aria-label="Toggle sound effects">
+          <span class="btn-icon">🔊</span>
+          <span class="btn-label">SFX: <strong id="sound-state-text">On</strong></span>
+        </button>
+
+        <!-- Voice narration toggle -->
+        <button id="toggle-voice-btn" class="pill-btn voice-btn" title="Toggle audio voice narration" aria-label="Toggle voice reading">
+          <span class="btn-icon">🗣️</span>
+          <span class="btn-label">Voice: <strong id="voice-state-text">On</strong></span>
+        </button>
+
+        <!-- Theme Picker -->
+        <div class="theme-picker-wrapper">
+          <button id="theme-btn" class="pill-btn theme-btn" aria-label="Switch visual theme">
+            <span class="theme-icon">🎨</span>
+            <span class="theme-name">Theme</span>
+          </button>
+          <div class="theme-menu hidden" id="theme-menu">
+            <button class="theme-opt" data-theme="theme-rainbow">🌈 Rainbow Magic</button>
+            <button class="theme-opt" data-theme="theme-cosmic">🚀 Cosmic Galaxy</button>
+            <button class="theme-opt" data-theme="theme-jungle">🌿 Wild Jungle</button>
+            <button class="theme-opt" data-theme="theme-candy">🍭 Candy Dream</button>
+          </div>
+        </div>
+
+        <!-- Direct Reveal Profile Button (Glows when enough gameplay telemetry gathered) -->
+        <button id="quick-reveal-btn" class="pill-btn reveal-pulse-btn" aria-label="Reveal superpowers profile">
+          <span class="btn-icon">🏆</span>
+          <span class="btn-label">My Superpowers</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="app-main" id="main-content">
+    
+    <!-- ==================== SCREEN 1: WELCOME & CHARACTER SETUP ==================== -->
+    <section id="screen-welcome" class="screen-view active">
+      <div class="welcome-card hero-glass">
+        <!-- Mascot Section -->
+        <div class="mascot-greeting">
+          <div class="mascot-avatar-wrapper">
+            <div class="mascot-badge" id="mascot-bubble">
+              <span class="mascot-emoji">🦊</span>
+              <div class="speech-bubble">
+                <p id="mascot-text">"Hey Player! Welcome to the <strong>WonderKid Arcade</strong>! No boring tests here—just choose and play fun games! Every move and choice you make reveals what makes you special!"</p>
+                <button id="mascot-speak-btn" class="icon-bubble-btn" title="Listen to Sparky" aria-label="Listen to Sparky">🔊</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-content">
+          <h1 class="hero-title">
+            Play Games. <span class="gradient-text">Reveal Your Superpowers!</span>
+          </h1>
+          <p class="hero-subtitle">
+            Do you rush in boldly or think things through? Do you rescue animals, build inventions, solve tricky puzzles, or drop musical beats? Choose your player name and jump straight into the games!
+          </p>
+
+          <!-- Player Setup Form -->
+          <div class="explorer-setup-box">
+            <div class="input-group">
+              <label for="explorer-name-input" class="input-label">
+                <span class="label-icon">✍️</span> What is your Player or Hero Name?
+              </label>
+              <input 
+                type="text" 
+                id="explorer-name-input" 
+                class="name-input" 
+                placeholder="Enter your hero name (e.g. Leo, Maya, Wonder-Sam)..." 
+                maxlength="20"
+                autocomplete="off"
+              >
+            </div>
+
+            <!-- Avatar Selection -->
+            <div class="avatar-select-group">
+              <label class="input-label">
+                <span class="label-icon">🦸</span> Choose Your Companion Avatar:
+              </label>
+              <div class="avatar-grid" id="avatar-grid" role="radiogroup" aria-label="Choose your companion avatar">
+                <button type="button" class="avatar-choice selected" data-avatar="fox" aria-checked="true" role="radio">
+                  <span class="av-emoji">🦊</span>
+                  <span class="av-name">Sparky Fox</span>
+                </button>
+                <button type="button" class="avatar-choice" data-avatar="lion" aria-checked="false" role="radio">
+                  <span class="av-emoji">🦁</span>
+                  <span class="av-name">Leo Brave</span>
+                </button>
+                <button type="button" class="avatar-choice" data-avatar="owl" aria-checked="false" role="radio">
+                  <span class="av-emoji">🦉</span>
+                  <span class="av-name">Luna Sage</span>
+                </button>
+                <button type="button" class="avatar-choice" data-avatar="dolphin" aria-checked="false" role="radio">
+                  <span class="av-emoji">🐬</span>
+                  <span class="av-name">Echo Wave</span>
+                </button>
+                <button type="button" class="avatar-choice" data-avatar="robot" aria-checked="false" role="radio">
+                  <span class="av-emoji">🤖</span>
+                  <span class="av-name">Pixel Bot</span>
+                </button>
+                <button type="button" class="avatar-choice" data-avatar="star" aria-checked="false" role="radio">
+                  <span class="av-emoji">⭐</span>
+                  <span class="av-name">Nova Star</span>
+                </button>
+                <button type="button" class="avatar-choice" data-avatar="bunny" aria-checked="false" role="radio">
+                  <span class="av-emoji">🐰</span>
+                  <span class="av-name">Pip Bunny</span>
+                </button>
+                <button type="button" class="avatar-choice" data-avatar="dragon" aria-checked="false" role="radio">
+                  <span class="av-emoji">🐲</span>
+                  <span class="av-name">Draco Kind</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Companion Gear / Accessory -->
+            <div class="accessory-select-group">
+              <label class="input-label">
+                <span class="label-icon">👑</span> Companion Hero Accessory:
+              </label>
+              <div class="accessory-grid" id="accessory-grid">
+                <button type="button" class="accessory-btn selected" data-acc="crown">
+                  <span class="acc-emoji">👑</span>
+                  <span class="acc-name">Royal Crown</span>
+                </button>
+                <button type="button" class="accessory-btn" data-acc="helmet">
+                  <span class="acc-emoji">🚀</span>
+                  <span class="acc-name">Astro Helmet</span>
+                </button>
+                <button type="button" class="accessory-btn" data-acc="wizard">
+                  <span class="acc-emoji">🧙</span>
+                  <span class="acc-name">Wizard Hat</span>
+                </button>
+                <button type="button" class="accessory-btn" data-acc="cape">
+                  <span class="acc-emoji">🦸</span>
+                  <span class="acc-name">Hero Cape</span>
+                </button>
+                <button type="button" class="accessory-btn" data-acc="flowers">
+                  <span class="acc-emoji">🌺</span>
+                  <span class="acc-name">Nature Crown</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Enter Arcade Action -->
+            <div class="start-action-row">
+              <button id="start-arcade-btn" class="cta-large-btn glow-bounce">
+                <span class="cta-sparkle">✨</span>
+                <span class="cta-text">Enter The Arcade World!</span>
+                <span class="cta-arrow">🚀</span>
+              </button>
+              <p class="cta-hint">100% interactive games • No tests or quizzes • Real playstyle insights!</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Arcade Highlights Row -->
+        <div class="feature-pills-row">
+          <div class="feat-pill">
+            <span class="feat-icon">🎮</span>
+            <span>4 Interactive Games</span>
+          </div>
+          <div class="feat-pill">
+            <span class="feat-icon">🔮</span>
+            <span>Live Superpower Telemetry</span>
+          </div>
+          <div class="feat-pill">
+            <span class="feat-icon">🏆</span>
+            <span>Earn Official Hero Diploma</span>
+          </div>
+          <div class="feat-pill">
+            <span class="feat-icon">🎵</span>
+            <span>Synthesized Sound & Music</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== SCREEN 2: THE ARCADE WORLD (GAME SELECTOR) ==================== -->
+    <section id="screen-arcade-hub" class="screen-view hidden">
+      <div class="arcade-hub-header">
+        <div class="hub-title-box">
+          <h2 class="arcade-main-heading">
+            Choose a Game to Play! 🌟
+          </h2>
+          <p class="arcade-subheading">
+            Each game tests a different part of your brain and heart. Play as many as you like—the more choices you make, the clearer your secret talents become!
+          </p>
+        </div>
+
+        <!-- Telemetry Summary Pill -->
+        <div class="telemetry-banner hero-glass">
+          <div class="telemetry-item">
+            <span class="t-label">Player:</span>
+            <strong id="hub-player-display">Leo</strong>
+          </div>
+          <div class="telemetry-item">
+            <span class="t-label">In-Game Choices:</span>
+            <strong id="hub-choices-display">0</strong>
+          </div>
+          <div class="telemetry-item">
+            <span class="t-label">Top Trait Emerging:</span>
+            <span class="t-tag" id="hub-dominant-trait">Awakening...</span>
+          </div>
+          <button id="hub-reveal-btn" class="cta-small-btn gold-glow">
+            <span>🏆 View My Superpowers</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Games Grid (4 Core Playable Arenas) -->
+      <div class="arcade-games-grid">
+        
+        <!-- Game 1: Critter Rescue & Sanctuary -->
+        <div class="game-showcase-card card-nature" data-game="critter">
+          <div class="game-card-badge">🌿 Care & Empathy</div>
+          <div class="game-art-preview">🐾 🏡 🌺</div>
+          <h3 class="game-card-title">Critter Rescue & Sanctuary</h3>
+          <p class="game-card-desc">
+            Magical forest animals need your help! Choose which creature to care for, comfort them in your own style, and design their dream cozy home.
+          </p>
+          <div class="game-card-traits">
+            <span>💖 Kindness</span>
+            <span>🌿 Nature</span>
+            <span>🎨 Creativity</span>
+          </div>
+          <button class="play-game-btn" data-game="critter">
+            <span>Play Sanctuary Lab 🚀</span>
+          </button>
+        </div>
+
+        <!-- Game 2: The Mystery Maze & Ancient Vault -->
+        <div class="game-showcase-card card-logic" data-game="maze">
+          <div class="game-card-badge">🧩 Logic & Bravery</div>
+          <div class="game-art-preview">🗝️ 🗺️ 🔮</div>
+          <h3 class="game-card-title">Mystery Maze & Ancient Vault</h3>
+          <p class="game-card-desc">
+            Navigate through mysterious branching chambers. Will you decode secret riddles, sprint through turbo trampolines, or search for hidden artifacts?
+          </p>
+          <div class="game-card-traits">
+            <span>🧩 Mind Wizard</span>
+            <span>🔍 Curiosity</span>
+            <span>⚡ Energy</span>
+          </div>
+          <button class="play-game-btn" data-game="maze">
+            <span>Enter The Maze 🚀</span>
+          </button>
+        </div>
+
+        <!-- Game 3: The Flying Machine Inventor -->
+        <div class="game-showcase-card card-builder" data-game="inventor">
+          <div class="game-card-badge">🛠️ Engineering & Creation</div>
+          <div class="game-art-preview">⚙️ 🚀 ☁️</div>
+          <h3 class="game-card-title">Flying Machine Inventor</h3>
+          <p class="game-card-desc">
+            Assemble your dream aircraft in the workshop—pick wings, propulsion engines, and fun mission gadgets, then test fly it across the starry sky!
+          </p>
+          <div class="game-card-traits">
+            <span>🛠️ Master Maker</span>
+            <span>🔍 Science</span>
+            <span>⚡ Adventure</span>
+          </div>
+          <button class="play-game-btn" data-game="inventor">
+            <span>Build & Fly 🚀</span>
+          </button>
+        </div>
+
+        <!-- Game 4: Cosmic Rhythm & Light Painter -->
+        <div class="game-showcase-card card-music" data-game="rhythm">
+          <div class="game-card-badge">🎵 Music & Imagination</div>
+          <div class="game-art-preview">🥁 🎶 🎨</div>
+          <h3 class="game-card-title">Cosmic Rhythm & Light Painter</h3>
+          <p class="game-card-desc">
+            Create music and dazzling ripple waves! Choose your instruments, jam to dynamic beats, and paint radiant constellations with your sound waves.
+          </p>
+          <div class="game-card-traits">
+            <span>🎵 Music Maestro</span>
+            <span>🎨 Imagination</span>
+            <span>💖 Harmony</span>
+          </div>
+          <button class="play-game-btn" data-game="rhythm">
+            <span>Jam & Paint 🚀</span>
+          </button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== SCREEN 3: ACTIVE GAMEPLAY ARENA ==================== -->
+    <section id="screen-game-arena" class="screen-view hidden">
+      <!-- Arena Header with Back Button and Real-Time Trait Feedback -->
+      <div class="arena-top-bar hero-glass">
+        <button id="arena-back-btn" class="pill-btn">
+          <span>← Back to Arcade World</span>
+        </button>
+        <div class="arena-meta">
+          <span class="arena-icon" id="arena-game-icon">🐾</span>
+          <span class="arena-title" id="arena-game-title">Critter Rescue & Sanctuary</span>
+        </div>
+        <div class="arena-spark-badge" id="arena-live-spark">
+          <span>✨ Choices Made: <strong id="arena-choice-counter">0</strong></span>
+        </div>
+      </div>
+
+      <!-- Container where current active game renders -->
+      <div class="game-stage-container hero-glass" id="game-stage-container">
+        
+        <!-- GAME 1 ARENA: CRITTER RESCUE & SANCTUARY -->
+        <div id="arena-critter" class="mini-game-arena hidden">
+          <div class="arena-step-header">
+            <span class="step-indicator" id="critter-step-label">Stage 1 of 3: Choose Your Rescue Companion</span>
+            <h3 class="stage-prompt" id="critter-stage-prompt">Three magical creatures are waiting for a friendly explorer. Who calls to you?</h3>
+          </div>
+
+          <!-- Dynamic Interaction Canvas/Zone -->
+          <div class="critter-interactive-zone" id="critter-content-zone">
+            <!-- Dynamically populated stages (Stage 1: Choose, Stage 2: Comfort Action, Stage 3: Build Sanctuary) -->
+          </div>
+        </div>
+
+        <!-- GAME 2 ARENA: MYSTERY MAZE & ANCIENT VAULT -->
+        <div id="arena-maze" class="mini-game-arena hidden">
+          <div class="arena-step-header">
+            <span class="step-indicator" id="maze-step-label">Chamber 1 of 3: The Crossroad of Destinies</span>
+            <h3 class="stage-prompt" id="maze-stage-prompt">You reach a vast underground hall with 3 mysterious doors. Which way do you go?</h3>
+          </div>
+
+          <div class="maze-interactive-zone" id="maze-content-zone">
+            <!-- Dynamically populated maze chambers -->
+          </div>
+        </div>
+
+        <!-- GAME 3 ARENA: FLYING MACHINE INVENTOR -->
+        <div id="arena-inventor" class="mini-game-arena hidden">
+          <div class="arena-step-header">
+            <span class="step-indicator" id="inventor-step-label">Workshop Phase 1: Hull & Chassis Design</span>
+            <h3 class="stage-prompt" id="inventor-stage-prompt">Select the main body frame for your sky invention:</h3>
+          </div>
+
+          <div class="inventor-interactive-zone" id="inventor-content-zone">
+            <!-- Workshop assembly stages & interactive flight test -->
+          </div>
+        </div>
+
+        <!-- GAME 4 ARENA: COSMIC RHYTHM & LIGHT PAINTER -->
+        <div id="arena-rhythm" class="mini-game-arena hidden">
+          <div class="arena-step-header">
+            <span class="step-indicator">Rhythm & Color Studio</span>
+            <h3 class="stage-prompt">Tap the pads to create music waves and paint the cosmic sky!</h3>
+          </div>
+
+          <div class="rhythm-interactive-zone" id="rhythm-content-zone">
+            <!-- Beat pads, visualizer, sound selector -->
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== SCREEN 4: SUPERPOWER DISCOVERY & REVEAL ==================== -->
+    <section id="screen-results" class="screen-view hidden">
+      <div class="results-container">
+        <!-- Hero Celebration Header -->
+        <div class="reveal-hero-banner hero-glass">
+          <div class="reveal-badge-column">
+            <div class="hero-avatar-frame">
+              <span class="hero-crown-emoji" id="result-crown-emoji">👑</span>
+              <div class="hero-avatar-circle" id="result-avatar-circle">🦊</div>
+              <span class="hero-level-tag">Master Explorer</span>
+            </div>
+          </div>
+
+          <div class="reveal-text-column">
+            <div class="celebration-tag">🎉 SUPERPOWER PROFILE SYNTHESIZED! 🎉</div>
+            <h1 class="superpower-hero-title">
+              <span class="kid-title-name" id="result-kid-name">Player</span> is:
+              <span class="primary-power-gradient" id="result-primary-title">The Cosmic Creator & Heart Hero</span>
+            </h1>
+            <p class="superpower-hero-desc" id="result-hero-summary">
+              Discovered from your actual gameplay choices, reactions, and creative decisions!
+            </p>
+
+            <div class="hero-quick-tags" id="result-quick-tags">
+              <!-- Dynamically populated tags -->
+            </div>
+
+            <!-- Action buttons -->
+            <div class="result-action-buttons">
+              <button id="open-certificate-btn" class="cta-large-btn gold-glow">
+                <span class="cta-sparkle">📜</span>
+                <span class="cta-text">Get My Official Diploma!</span>
+              </button>
+              <button id="return-arcade-btn" class="pill-btn arcade-btn">
+                <span>🎮 Keep Playing Games</span>
+              </button>
+              <button id="print-summary-btn" class="pill-btn print-btn">
+                <span>🖨️ Print Report</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 Pillars Grid -->
+        <div class="results-content-grid">
+          
+          <!-- Column 1: Detailed Superpower Breakdown Radar/Bars -->
+          <div class="content-box talent-breakdown-box">
+            <div class="box-header">
+              <span class="box-icon">📊</span>
+              <div>
+                <h3 class="box-title">Your Live Superpower Radar</h3>
+                <p class="box-subtitle">Measured from your in-game choices and style:</p>
+              </div>
+            </div>
+            
+            <div class="talent-bars-list" id="talent-bars-container">
+              <!-- Dynamically injected bars for all 8 categories -->
+            </div>
+          </div>
+
+          <!-- Column 2: What Makes You One-of-a-Kind -->
+          <div class="content-box special-strengths-box">
+            <div class="box-header">
+              <span class="box-icon">💎</span>
+              <div>
+                <h3 class="box-title">Secret Talents Discovered</h3>
+                <p class="box-subtitle">Evidence gathered from how you played:</p>
+              </div>
+            </div>
+
+            <div class="special-traits-list" id="special-traits-container">
+              <!-- Dynamically populated trait cards with gameplay evidence -->
+            </div>
+
+            <!-- Real-World Heroes Matching -->
+            <div class="mentors-callout" id="mentors-callout">
+              <div class="mentor-badge-header">
+                <span class="mentor-icon">🚀</span>
+                <strong>Real-Life Heroes Who Share Your Spark:</strong>
+              </div>
+              <p class="mentor-names" id="mentor-names-text">
+                Jane Goodall, Leonardo da Vinci, and Fred Rogers!
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fun Real-World Missions & Quests for Today -->
+        <div class="missions-section hero-glass">
+          <div class="missions-header">
+            <span class="missions-icon">🎯</span>
+            <div>
+              <h3 class="missions-title">Real-World Quests to Foster Your Talent</h3>
+              <p class="missions-subtitle">Now that you know your hidden superpowers, try these fun challenges in real life:</p>
+            </div>
+          </div>
+
+          <div class="missions-grid" id="missions-grid-container">
+            <!-- Dynamically populated mission cards -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== MODAL: OFFICIAL SUPERPOWER DIPLOMA ==================== -->
+    <div id="modal-certificate" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="diploma-title">
+      <div class="modal-container cert-modal-container">
+        <div class="modal-header no-print">
+          <div class="cert-controls">
+            <span class="control-label">Diploma Seal Color:</span>
+            <div class="color-swatches" id="cert-color-picker">
+              <button class="color-dot gold active" data-color="gold" title="Gold Royal"></button>
+              <button class="color-dot sapphire" data-color="sapphire" title="Sapphire Ocean"></button>
+              <button class="color-dot emerald" data-color="emerald" title="Emerald Forest"></button>
+              <button class="color-dot cosmic" data-color="cosmic" title="Cosmic Violet"></button>
+            </div>
+          </div>
+
+          <div class="modal-actions-right">
+            <button id="do-print-cert-btn" class="pill-btn print-action-btn">
+              <span>🖨️ Print / Save Diploma</span>
+            </button>
+            <button id="close-cert-btn" class="close-modal-btn" aria-label="Close certificate">✕</button>
+          </div>
+        </div>
+
+        <!-- The Printable Certificate Sheet -->
+        <div class="certificate-sheet" id="printable-certificate">
+          <div class="cert-outer-border">
+            <div class="cert-inner-border">
+              
+              <!-- Corner Ornaments -->
+              <div class="cert-corner tl">⭐</div>
+              <div class="cert-corner tr">⭐</div>
+              <div class="cert-corner bl">⭐</div>
+              <div class="cert-corner br">⭐</div>
+
+              <div class="cert-body">
+                <div class="cert-header-icon">🏆</div>
+                <div class="cert-pre-title">ACADEMY OF EXTRAORDINARY EXPLORERS</div>
+                <h2 class="cert-main-title" id="diploma-title">Official Superpower Diploma</h2>
+                <div class="cert-subtext">This prestigious certificate is proudly awarded to:</div>
+
+                <div class="cert-recipient-name" id="cert-kid-name">EXPLORER LEO</div>
+
+                <div class="cert-conferred-text">
+                  Having explored the WonderKid Arcade and demonstrated exceptional heart, curiosity, and creative genius through genuine gameplay decisions, you are proclaimed:
+                </div>
+
+                <div class="cert-superpower-title" id="cert-superpower-title">
+                  THE COSMIC CREATOR & KINDNESS HERO
+                </div>
+
+                <div class="cert-badges-row">
+                  <div class="cert-badge-item">
+                    <span class="c-badge-icon" id="cert-badge-1-icon">🎨</span>
+                    <span class="c-badge-name" id="cert-badge-1-name">Creative Star</span>
+                  </div>
+                  <div class="cert-badge-item">
+                    <span class="c-badge-icon" id="cert-badge-2-icon">💖</span>
+                    <span class="c-badge-name" id="cert-badge-2-name">Heart Hero</span>
+                  </div>
+                  <div class="cert-badge-item">
+                    <span class="c-badge-icon" id="cert-badge-3-icon">🧩</span>
+                    <span class="c-badge-name" id="cert-badge-3-name">Logic Wizard</span>
+                  </div>
+                </div>
+
+                <!-- Motto -->
+                <div class="cert-motto-box">
+                  <span class="cert-motto-quote">"Always stay curious, play with your whole heart, and let your unique light brighten the world!"</span>
+                </div>
+
+                <!-- Footer with Seal and Signatures -->
+                <div class="cert-footer-row">
+                  <div class="cert-sig-block">
+                    <div class="cert-sig-line">Sparky the Astro-Fox</div>
+                    <span class="sig-title">Master Talent Scout</span>
+                  </div>
+
+                  <div class="cert-official-seal" id="cert-official-seal">
+                    <div class="seal-inner">
+                      <span class="seal-star">★</span>
+                      <span class="seal-text">VERIFIED GAMEPLAY TALENT</span>
+                      <span class="seal-year">2026</span>
+                    </div>
+                  </div>
+
+                  <div class="cert-sig-block">
+                    <div class="cert-sig-line" id="cert-date-line">October 2026</div>
+                    <span class="sig-title">Date of Discovery</span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Sound Synthesizer & Game-Based Discovery Logic -->
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

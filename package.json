@@ -1,0 +1,14 @@
+{
+  "name": "app_kids",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.html",
+  "type": "module",
+  "scripts": {
+    "dev": "node dev-server.js",
+    "start": "node dev-server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
